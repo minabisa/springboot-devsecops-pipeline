@@ -20,6 +20,7 @@ pipeline {
 
         SONAR_SERVER_NAME    = 'SonarQube'
         SONAR_SCANNER_NAME   = 'SonarScanner'
+        MAVEN_OPTS = '-Xms512m -Xmx3g'
     }
 
     options {
