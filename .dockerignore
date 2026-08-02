@@ -1,0 +1,12 @@
+target/
+.git/
+.gitignore
+.idea/
+.vscode/
+.DS_Store
+*.log
+README.md
+docs/
+terraform/
+kubernetes/
+Jenkinsfile

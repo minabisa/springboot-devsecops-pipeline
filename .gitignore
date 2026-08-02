@@ -9,4 +9,13 @@ target/
 
 .DS_Store
 
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+terraform.tfvars
+.terraform.lock.hcl
+crash.log
+
 .mvn/wrapper/maven-wrapper.jar
