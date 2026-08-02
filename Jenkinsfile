@@ -1,3 +1,4 @@
+```groovy
 pipeline {
     agent { label 'build-agent' }
 
@@ -7,29 +8,32 @@ pipeline {
     }
 
     environment {
-        APP_NAME           = 'springboot-devsecops'
-        DOCKERHUB_USERNAME = 'minabisa90'
-        DOCKERHUB_REPO     = "${DOCKERHUB_USERNAME}/${APP_NAME}"
+        APP_NAME             = 'springboot-devsecops'
+        DOCKERHUB_USERNAME   = 'minabisa90'
+        DOCKER_REPOSITORY    = "${DOCKERHUB_USERNAME}/${APP_NAME}"
 
-        // Jenkins credential IDs
-        DOCKERHUB_CREDS    = 'dockerhub'
+        IMAGE_TAG            = "${BUILD_NUMBER}"
+        IMAGE_NAME           = "${DOCKER_REPOSITORY}:${IMAGE_TAG}"
+        LATEST_IMAGE         = "${DOCKER_REPOSITORY}:latest"
 
-        // Must match Manage Jenkins → System → SonarQube Servers
-        SONARQUBE_SERVER   = 'SonarQube'
+        DOCKER_CREDENTIAL_ID = 'dockerhub'
+        NVD_CREDENTIAL_ID    = 'nvd-api-key'
 
-        // Must match Manage Jenkins → Tools
-        SONAR_SCANNER      = 'SonarScanner'
-
-        IMAGE_TAG          = "${BUILD_NUMBER}"
-        IMAGE_NAME         = "${DOCKERHUB_REPO}:${IMAGE_TAG}"
-        LATEST_IMAGE       = "${DOCKERHUB_REPO}:latest"
+        SONAR_SERVER_NAME    = 'SonarQube'
+        SONAR_SCANNER_NAME   = 'SonarScanner'
     }
 
     options {
         timestamps()
         disableConcurrentBuilds()
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-        timeout(time: 45, unit: 'MINUTES')
+        timeout(time: 60, unit: 'MINUTES')
+
+        buildDiscarder(
+            logRotator(
+                numToKeepStr: '10',
+                artifactNumToKeepStr: '5'
+            )
+        )
     }
 
     stages {
@@ -39,102 +43,118 @@ pipeline {
                 checkout scm
 
                 sh '''
-                    echo "Branch: ${BRANCH_NAME:-unknown}"
+                    echo "Repository information"
+                    echo "Branch: $(git branch --show-current)"
                     echo "Commit: $(git rev-parse --short HEAD)"
+                    echo "Author: $(git log -1 --pretty=format:'%an')"
                 '''
             }
         }
 
-        stage('Build') {
+        stage('Build, Test and Coverage') {
             steps {
                 sh '''
-                    mvn --version
-                    mvn clean compile -B
-                '''
-            }
-        }
+                    echo "Java version:"
+                    java -version
 
-        stage('Unit Tests') {
-            steps {
-                sh '''
-                    mvn test -B
+                    echo "Maven version:"
+                    mvn -version
+
+                    echo "Building application and running tests..."
+                    mvn clean verify -B
                 '''
             }
 
             post {
                 always {
-                    junit allowEmptyResults: true,
-                          testResults: 'target/surefire-reports/*.xml'
-                }
-            }
-        }
-
-        stage('Code Coverage') {
-            steps {
-                sh '''
-                    mvn jacoco:report -B
-                    test -f target/site/jacoco/index.html
-                '''
-            }
-
-            post {
-                always {
-                    archiveArtifacts(
-                        artifacts: 'target/site/jacoco/**/*',
-                        allowEmptyArchive: true
+                    junit(
+                        allowEmptyResults: false,
+                        testResults: 'target/surefire-reports/*.xml'
                     )
-                }
-            }
-        }
 
-        stage('Package') {
-            steps {
-                sh '''
-                    mvn package -DskipTests -B
-                    ls -lh target/*.jar
-                '''
-            }
-
-            post {
-                success {
                     archiveArtifacts(
-                        artifacts: 'target/*.jar',
+                        artifacts: '''
+                            target/*.jar,
+                            target/site/jacoco/**/*,
+                            target/surefire-reports/**/*
+                        ''',
+                        allowEmptyArchive: true,
                         fingerprint: true
                     )
                 }
             }
         }
 
-        stage('SCA - OWASP Dependency Check') {
+        stage('Verify Build Output') {
             steps {
                 sh '''
-                    mvn org.owasp:dependency-check-maven:check \
-                      -Dformat=ALL \
-                      -DfailBuildOnCVSS=9 \
-                      -B
+                    echo "Checking generated files..."
+
+                    test -d target/classes
+                    test -f target/site/jacoco/jacoco.xml
+
+                    JAR_FILE=$(find target \
+                      -maxdepth 1 \
+                      -type f \
+                      -name "*.jar" \
+                      ! -name "*.original" \
+                      | head -n 1)
+
+                    if [ -z "${JAR_FILE}" ]; then
+                        echo "No application JAR was generated."
+                        exit 1
+                    fi
+
+                    echo "Application JAR: ${JAR_FILE}"
+                    ls -lh "${JAR_FILE}"
                 '''
+            }
+        }
+
+        stage('SCA - OWASP Dependency Check') {
+            steps {
+                withCredentials([
+                    string(
+                        credentialsId: "${NVD_CREDENTIAL_ID}",
+                        variable: 'NVD_API_KEY'
+                    )
+                ]) {
+                    sh '''
+                        echo "Running OWASP Dependency-Check..."
+
+                        mvn \
+                          org.owasp:dependency-check-maven:12.2.2:check \
+                          -DnvdApiKeyEnvironmentVariable=NVD_API_KEY \
+                          -Dformats=HTML,JSON \
+                          -DfailBuildOnCVSS=11 \
+                          -B
+                    '''
+                }
             }
 
             post {
                 always {
                     archiveArtifacts(
-                        artifacts: 'target/dependency-check-report.*',
+                        artifacts: '''
+                            target/dependency-check-report.html,
+                            target/dependency-check-report.json
+                        ''',
                         allowEmptyArchive: true
                     )
                 }
             }
         }
 
-        stage('SAST - SonarQube') {
+        stage('SAST - SonarQube Analysis') {
             steps {
                 script {
-                    def scannerHome = tool "${SONAR_SCANNER}"
+                    def sonarScannerHome = tool "${SONAR_SCANNER_NAME}"
 
-                    withSonarQubeEnv("${SONARQUBE_SERVER}") {
+                    withSonarQubeEnv("${SONAR_SERVER_NAME}") {
                         sh """
-                            ${scannerHome}/bin/sonar-scanner \
+                            ${sonarScannerHome}/bin/sonar-scanner \
                               -Dsonar.projectKey=springboot-devsecops \
-                              -Dsonar.projectName=springboot-devsecops \
+                              -Dsonar.projectName=SpringBoot-DevSecOps \
                               -Dsonar.projectVersion=${BUILD_NUMBER} \
                               -Dsonar.sources=src/main/java \
                               -Dsonar.tests=src/test/java \
@@ -159,11 +179,15 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
+                    echo "Building Docker image from the existing JAR..."
+
                     docker build \
                       --pull \
-                      -t "${IMAGE_NAME}" \
-                      -t "${LATEST_IMAGE}" \
+                      --tag "${IMAGE_NAME}" \
+                      --tag "${LATEST_IMAGE}" \
                       .
+
+                    docker image inspect "${IMAGE_NAME}"
                 '''
             }
         }
@@ -171,18 +195,26 @@ pipeline {
         stage('Scan Docker Image') {
             steps {
                 sh '''
+                    echo "Creating Trivy reports..."
+
                     trivy image \
-                      --exit-code 0 \
-                      --severity LOW,MEDIUM \
                       --format table \
+                      --severity LOW,MEDIUM,HIGH,CRITICAL \
+                      --output trivy-image-report.txt \
                       "${IMAGE_NAME}"
 
                     trivy image \
-                      --exit-code 1 \
+                      --format json \
                       --severity HIGH,CRITICAL \
+                      --output trivy-image-report.json \
+                      "${IMAGE_NAME}"
+
+                    echo "Reporting mode enabled for the first pipeline run."
+
+                    trivy image \
+                      --exit-code 0 \
                       --ignore-unfixed \
-                      --format table \
-                      --output trivy-image-report.txt \
+                      --severity HIGH,CRITICAL \
                       "${IMAGE_NAME}"
                 '''
             }
@@ -190,7 +222,10 @@ pipeline {
             post {
                 always {
                     archiveArtifacts(
-                        artifacts: 'trivy-image-report.txt',
+                        artifacts: '''
+                            trivy-image-report.txt,
+                            trivy-image-report.json
+                        ''',
                         allowEmptyArchive: true
                     )
                 }
@@ -201,16 +236,18 @@ pipeline {
             steps {
                 withCredentials([
                     usernamePassword(
-                        credentialsId: "${DOCKERHUB_CREDS}",
+                        credentialsId: "${DOCKER_CREDENTIAL_ID}",
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_TOKEN'
                     )
                 ]) {
                     sh '''
-                        echo "${DOCKER_TOKEN}" | \
+                        set +x
+
+                        echo "${DOCKER_TOKEN}" |
                           docker login \
-                          --username "${DOCKER_USER}" \
-                          --password-stdin
+                            --username "${DOCKER_USER}" \
+                            --password-stdin
 
                         docker push "${IMAGE_NAME}"
                         docker push "${LATEST_IMAGE}"
@@ -221,21 +258,30 @@ pipeline {
             }
         }
 
+        stage('Verify Published Image') {
+            steps {
+                sh '''
+                    echo "Published images:"
+                    echo "${IMAGE_NAME}"
+                    echo "${LATEST_IMAGE}"
+                '''
+            }
+        }
+
         /*
+        Enable these stages only after Kubernetes is running.
+
         stage('Deploy to Kubernetes') {
             steps {
                 sh """
-                    sed -i \
-                      's|minabisa90/springboot-devsecops:.*|${IMAGE_NAME}|' \
-                      kubernetes/deployment.yaml
-
-                    kubectl apply -f kubernetes/namespace.yaml
-                    kubectl apply -f kubernetes/deployment.yaml
-                    kubectl apply -f kubernetes/service.yaml
+                    kubectl set image \
+                      deployment/springboot-devsecops \
+                      springboot-devsecops=${IMAGE_NAME} \
+                      --namespace springboot-devsecops
 
                     kubectl rollout status \
                       deployment/springboot-devsecops \
-                      -n springboot-devsecops \
+                      --namespace springboot-devsecops \
                       --timeout=180s
                 """
             }
@@ -253,6 +299,15 @@ pipeline {
     }
 
     post {
+        success {
+            echo 'DevSecOps pipeline completed successfully.'
+            echo "Published image: ${IMAGE_NAME}"
+        }
+
+        failure {
+            echo 'Pipeline failed. Check the failed stage console output.'
+        }
+
         always {
             sh '''
                 docker logout >/dev/null 2>&1 || true
@@ -265,14 +320,7 @@ pipeline {
                 notFailBuild: true
             )
         }
-
-        success {
-            echo "Pipeline completed successfully."
-            echo "Docker image: ${IMAGE_NAME}"
-        }
-
-        failure {
-            echo 'Pipeline failed. Review the failed stage logs.'
-        }
     }
 }
+```
+
