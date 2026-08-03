@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: springboot-devsecops
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/minabisa/springboot-devsecops-pipeline.git
+    targetRevision: feature/devsecops
+    path: kubernetes
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: springboot-devsecops
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true

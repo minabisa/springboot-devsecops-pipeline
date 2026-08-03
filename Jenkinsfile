@@ -204,6 +204,40 @@ pipeline {
                 }
             }
         }
+
+        stage('Update GitOps Manifest') {
+    steps {
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'github-push',
+                usernameVariable: 'GIT_USERNAME',
+                passwordVariable: 'GIT_TOKEN'
+            )
+        ]) {
+            sh '''
+                git config user.name "Jenkins CI"
+                git config user.email "jenkins@devsecops.local"
+
+                sed -i \
+                  "s|image: minabisa90/springboot-devsecops:.*|image: minabisa90/springboot-devsecops:${BUILD_NUMBER}|" \
+                  kubernetes/deployment.yaml
+
+                git add kubernetes/deployment.yaml
+
+                if git diff --cached --quiet; then
+                    echo "No manifest change detected."
+                    exit 0
+                fi
+
+                git commit -m "Deploy image ${BUILD_NUMBER} [skip ci]"
+
+                git push \
+                  "https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/minabisa/springboot-devsecops-pipeline.git" \
+                  HEAD:feature/devsecops
+            '''
+        }
+    }
+}
     }
 
     post {

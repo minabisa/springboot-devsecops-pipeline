@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   name: springboot-devsecops
   namespace: springboot-devsecops
-  labels:
-    app: springboot-devsecops
 spec:
   replicas: 2
 
@@ -30,24 +28,22 @@ spec:
 
       containers:
         - name: springboot-devsecops
-          image: minabisa90/springboot-devsecops:1.0.0
-          imagePullPolicy: IfNotPresent
+          image: minabisa90/springboot-devsecops:1
+          imagePullPolicy: Always
 
           ports:
             - name: http
               containerPort: 8080
-              protocol: TCP
 
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
             capabilities:
               drop:
                 - ALL
 
           resources:
             requests:
-              cpu: 200m
+              cpu: 150m
               memory: 256Mi
             limits:
               cpu: 500m
@@ -55,7 +51,7 @@ spec:
 
           readinessProbe:
             httpGet:
-              path: /swagger-ui.html
+              path: /
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -64,7 +60,7 @@ spec:
 
           livenessProbe:
             httpGet:
-              path: /swagger-ui.html
+              path: /
               port: 8080
             initialDelaySeconds: 60
             periodSeconds: 20
