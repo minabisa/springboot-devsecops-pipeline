@@ -23,8 +23,29 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "devsecops-public-subnet"
+    Name = "devsecops-public-subnet-a"
+
+    "kubernetes.io/role/elb" = "1"
   }
+
+}
+
+resource "aws_subnet" "public_b" {
+  vpc_id                  = aws_vpc.devsecops.id
+  cidr_block              = "10.20.2.0/24"
+  availability_zone       = "${var.aws_region}b"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "devsecops-public-subnet-b"
+
+    "kubernetes.io/role/elb" = "1"
+  }
+}
+
+resource "aws_route_table_association" "public_b" {
+  subnet_id      = aws_subnet.public_b.id
+  route_table_id = aws_route_table.public.id
 }
 
 resource "aws_route_table" "public" {

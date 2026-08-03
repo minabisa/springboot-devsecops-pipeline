@@ -35,23 +35,25 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                sh """
+
+                sh '''
                     echo "Commit: $(git rev-parse --short HEAD)"
                     echo "Author: $(git log -1 --pretty=format:'%an')"
                     echo "Message: $(git log -1 --pretty=format:'%s')"
-                """
+                '''
             }
         }
 
         stage('Build, Test and Coverage') {
             steps {
-                sh """
+                sh '''
                     java -version
                     mvn -version
                     free -h
                     mvn clean verify -B
-                """
+                '''
             }
+
             post {
                 always {
                     junit allowEmptyResults: false,
@@ -65,7 +67,7 @@ pipeline {
 
         stage('Verify Build Output') {
             steps {
-                sh """
+                sh '''
                     test -d target/classes
                     test -d target/test-classes
                     test -f target/site/jacoco/jacoco.xml
@@ -78,8 +80,9 @@ pipeline {
                     fi
 
                     ls -lh "${JAR_FILE}"
-                """
+                '''
             }
+
             post {
                 success {
                     archiveArtifacts artifacts: 'target/*.jar',
@@ -94,13 +97,14 @@ pipeline {
                 withCredentials([
                     string(credentialsId: "${NVD_CREDENTIAL_ID}", variable: 'NVD_API_KEY')
                 ]) {
-                    sh """
+                    sh '''
                         free -h
 
                         mvn org.owasp:dependency-check-maven:12.2.2:check                           -DnvdApiKeyEnvironmentVariable=NVD_API_KEY                           -Dformats=HTML,JSON                           -DfailBuildOnCVSS=11                           -B
-                    """
+                    '''
                 }
             }
+
             post {
                 always {
                     archiveArtifacts artifacts: 'target/dependency-check-report.html,target/dependency-check-report.json',
@@ -110,27 +114,36 @@ pipeline {
         }
 
         stage('SAST - SonarQube Analysis') {
-            steps {
-                script {
-                    def sonarScannerHome = tool "${SONAR_SCANNER_NAME}"
-                    def java21Home = tool "${SONAR_JDK_NAME}"
+    steps {
+        withSonarQubeEnv('SonarQube') {
+            withEnv([
+                'JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64',
+                'PATH=/usr/lib/jvm/java-21-openjdk-amd64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+                'SONAR_SCANNER_HOME=/opt/sonar-scanner'
+            ]) {
+                sh '''
+                    echo "Java used by SonarScanner:"
+                    java -version
 
-                    withSonarQubeEnv("${SONAR_SERVER_NAME}") {
-                        withEnv([
-                            "JAVA_HOME=${java21Home}",
-                            "PATH=${java21Home}/bin:${env.PATH}"
-                        ]) {
-                            sh """
-                                java -version
-                                ${sonarScannerHome}/bin/sonar-scanner --version
+                    echo "SonarScanner version:"
+                    "${SONAR_SCANNER_HOME}/bin/sonar-scanner" --version
 
-                                ${sonarScannerHome}/bin/sonar-scanner                                   -Dsonar.projectKey=springboot-devsecops                                   -Dsonar.projectName=SpringBoot-DevSecOps                                   -Dsonar.projectVersion=${BUILD_NUMBER}                                   -Dsonar.sources=src/main/java                                   -Dsonar.tests=src/test/java                                   -Dsonar.java.binaries=target/classes                                   -Dsonar.java.test.binaries=target/test-classes                                   -Dsonar.java.source=8                                   -Dsonar.junit.reportPaths=target/surefire-reports                                   -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-                            """
-                        }
-                    }
-                }
+                    "${SONAR_SCANNER_HOME}/bin/sonar-scanner" \
+                      -Dsonar.projectKey=springboot-devsecops \
+                      -Dsonar.projectName=SpringBoot-DevSecOps \
+                      -Dsonar.projectVersion="${BUILD_NUMBER}" \
+                      -Dsonar.sources=src/main/java \
+                      -Dsonar.tests=src/test/java \
+                      -Dsonar.java.binaries=target/classes \
+                      -Dsonar.java.test.binaries=target/test-classes \
+                      -Dsonar.java.source=8 \
+                      -Dsonar.junit.reportPaths=target/surefire-reports \
+                      -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+                '''
             }
         }
+    }
+}
 
         stage('Quality Gate') {
             steps {
@@ -142,24 +155,25 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh """
+                sh '''
                     docker build                       --pull                       --tag "${IMAGE_NAME}"                       --tag "${LATEST_IMAGE}"                       .
 
                     docker image inspect "${IMAGE_NAME}" >/dev/null
-                """
+                '''
             }
         }
 
         stage('Scan Docker Image') {
             steps {
-                sh """
+                sh '''
                     trivy image                       --format table                       --severity LOW,MEDIUM,HIGH,CRITICAL                       --output trivy-image-report.txt                       "${IMAGE_NAME}"
 
                     trivy image                       --format json                       --severity HIGH,CRITICAL                       --output trivy-image-report.json                       "${IMAGE_NAME}"
 
                     trivy image                       --exit-code 0                       --ignore-unfixed                       --severity HIGH,CRITICAL                       "${IMAGE_NAME}"
-                """
+                '''
             }
+
             post {
                 always {
                     archiveArtifacts artifacts: 'trivy-image-report.txt,trivy-image-report.json',
@@ -177,7 +191,7 @@ pipeline {
                         passwordVariable: 'DOCKER_TOKEN'
                     )
                 ]) {
-                    sh """
+                    sh '''
                         set +x
 
                         echo "${DOCKER_TOKEN}" | docker login                           --username "${DOCKER_USER}"                           --password-stdin
@@ -186,10 +200,44 @@ pipeline {
                         docker push "${LATEST_IMAGE}"
 
                         docker logout
-                    """
+                    '''
                 }
             }
         }
+
+        stage('Update GitOps Manifest') {
+    steps {
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'github-push',
+                usernameVariable: 'GIT_USERNAME',
+                passwordVariable: 'GIT_TOKEN'
+            )
+        ]) {
+            sh '''
+                git config user.name "Jenkins CI"
+                git config user.email "jenkins@devsecops.local"
+
+                sed -i \
+                  "s|image: minabisa90/springboot-devsecops:.*|image: minabisa90/springboot-devsecops:${BUILD_NUMBER}|" \
+                  kubernetes/deployment.yaml
+
+                git add kubernetes/deployment.yaml
+
+                if git diff --cached --quiet; then
+                    echo "No manifest change detected."
+                    exit 0
+                fi
+
+                git commit -m "Deploy image ${BUILD_NUMBER} [skip ci]"
+
+                git push \
+                  "https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/minabisa/springboot-devsecops-pipeline.git" \
+                  HEAD:feature/devsecops
+            '''
+        }
+    }
+}
     }
 
     post {
@@ -203,11 +251,11 @@ pipeline {
         }
 
         always {
-            sh """
+            sh '''
                 docker logout >/dev/null 2>&1 || true
                 docker image rm "${IMAGE_NAME}" >/dev/null 2>&1 || true
                 docker image rm "${LATEST_IMAGE}" >/dev/null 2>&1 || true
-            """
+            '''
 
             cleanWs deleteDirs: true, notFailBuild: true
         }
