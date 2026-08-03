@@ -114,28 +114,36 @@ pipeline {
         }
 
         stage('SAST - SonarQube Analysis') {
-            steps {
-                script {
-                    def sonarScannerHome = tool "${SONAR_SCANNER_NAME}"
-                    def java21Home = tool "${SONAR_JDK_NAME}"
+    steps {
+        withSonarQubeEnv('SonarQube') {
+            withEnv([
+                'JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64',
+                'PATH=/usr/lib/jvm/java-21-openjdk-amd64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+                'SONAR_SCANNER_HOME=/opt/sonar-scanner'
+            ]) {
+                sh '''
+                    echo "Java used by SonarScanner:"
+                    java -version
 
-                    withSonarQubeEnv("${SONAR_SERVER_NAME}") {
-                        withEnv([
-                            "JAVA_HOME=${java21Home}",
-                            "PATH=${java21Home}/bin:${env.PATH}",
-                            "SONAR_SCANNER_HOME=${sonarScannerHome}"
-                        ]) {
-                            sh '''
-                                java -version
-                                "${SONAR_SCANNER_HOME}/bin/sonar-scanner" --version
+                    echo "SonarScanner version:"
+                    "${SONAR_SCANNER_HOME}/bin/sonar-scanner" --version
 
-                                "${SONAR_SCANNER_HOME}/bin/sonar-scanner"                                   -Dsonar.projectKey=springboot-devsecops                                   -Dsonar.projectName=SpringBoot-DevSecOps                                   -Dsonar.projectVersion="${BUILD_NUMBER}"                                   -Dsonar.sources=src/main/java                                   -Dsonar.tests=src/test/java                                   -Dsonar.java.binaries=target/classes                                   -Dsonar.java.test.binaries=target/test-classes                                   -Dsonar.java.source=8                                   -Dsonar.junit.reportPaths=target/surefire-reports                                   -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-                            '''
-                        }
-                    }
-                }
+                    "${SONAR_SCANNER_HOME}/bin/sonar-scanner" \
+                      -Dsonar.projectKey=springboot-devsecops \
+                      -Dsonar.projectName=SpringBoot-DevSecOps \
+                      -Dsonar.projectVersion="${BUILD_NUMBER}" \
+                      -Dsonar.sources=src/main/java \
+                      -Dsonar.tests=src/test/java \
+                      -Dsonar.java.binaries=target/classes \
+                      -Dsonar.java.test.binaries=target/test-classes \
+                      -Dsonar.java.source=8 \
+                      -Dsonar.junit.reportPaths=target/surefire-reports \
+                      -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+                '''
             }
         }
+    }
+}
 
         stage('Quality Gate') {
             steps {
