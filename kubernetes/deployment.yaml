@@ -35,7 +35,10 @@ spec:
             - name: http
               containerPort: 8080
 
-          securityContext:
+          ssecurityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
             allowPrivilegeEscalation: false
             capabilities:
               drop:
