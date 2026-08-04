@@ -28,7 +28,7 @@ spec:
 
       containers:
         - name: springboot-devsecops
-          image: minabisa90/springboot-devsecops:3
+          image: minabisa90/springboot-devsecops:5
           imagePullPolicy: Always
 
           ports:
