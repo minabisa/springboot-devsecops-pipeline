@@ -20,18 +20,15 @@ FROM eclipse-temurin:11-jre-jammy AS runtime
 
 WORKDIR /app
 
-RUN groupadd --system appgroup \
-    && useradd --system \
-    --gid appgroup \
-    --home-dir /app \
-    --shell /usr/sbin/nologin \
-    appuser
+RUN addgroup -g 10001 appgroup && \
+    adduser -D -u 10001 -G appgroup appuser
+
+USER 10001
 
 COPY --from=builder --chown=appuser:appgroup \
     /app/target/wezvatech-demo-1.0.0.jar \
     /app/app.jar
 
-USER appuser
 
 EXPOSE 8080
 
