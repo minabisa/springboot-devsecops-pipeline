@@ -1,802 +1,555 @@
-<p align="center">
-  <img src="docs/images/banner.png" alt="DevSecOps Banner" width="100%">
-</p>
+<div align="center">
 
-<h1 align="center">
-🚀 Enterprise DevSecOps GitOps Platform on Amazon EKS
-</h1>
+# 🚀 Spring Boot DevSecOps GitOps Platform on Amazon EKS
 
-<h3 align="center">
-Secure End-to-End CI/CD Pipeline using Terraform, Jenkins, SonarQube, OWASP Dependency Check, Trivy, Docker, Argo CD and Amazon EKS
-</h3>
+### Secure CI/CD with Terraform, Jenkins, SonarQube, OWASP Dependency-Check, Trivy, Docker, Argo CD, and Amazon EKS
 
-<p align="center">
+[![AWS](https://img.shields.io/badge/AWS-EKS-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)](https://aws.amazon.com/eks/)
+[![Terraform](https://img.shields.io/badge/Terraform-IaC-844FBA?style=for-the-badge&logo=terraform&logoColor=white)](https://www.terraform.io/)
+[![Jenkins](https://img.shields.io/badge/Jenkins-CI-D24939?style=for-the-badge&logo=jenkins&logoColor=white)](https://www.jenkins.io/)
+[![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-EKS-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![Argo CD](https://img.shields.io/badge/Argo_CD-GitOps-EF7B4D?style=for-the-badge&logo=argo&logoColor=white)](https://argo-cd.readthedocs.io/)
+[![SonarQube](https://img.shields.io/badge/SonarQube-SAST-4E9BCD?style=for-the-badge&logo=sonarqube&logoColor=white)](https://www.sonarsource.com/products/sonarqube/)
+[![Trivy](https://img.shields.io/badge/Trivy-Image_Scanning-1904DA?style=for-the-badge&logo=aqua&logoColor=white)](https://trivy.dev/)
 
-![AWS](https://img.shields.io/badge/AWS-EKS-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)
-![Terraform](https://img.shields.io/badge/Terraform-IaC-623CE4?style=for-the-badge&logo=terraform)
-![Jenkins](https://img.shields.io/badge/Jenkins-CI%2FCD-D24939?style=for-the-badge&logo=jenkins)
-![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?style=for-the-badge&logo=docker)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-EKS-326CE5?style=for-the-badge&logo=kubernetes)
-![ArgoCD](https://img.shields.io/badge/ArgoCD-GitOps-EF7B4D?style=for-the-badge&logo=argo)
-![SonarQube](https://img.shields.io/badge/SonarQube-SAST-4E9BCD?style=for-the-badge&logo=sonarqube)
-![Trivy](https://img.shields.io/badge/Trivy-Image%20Scanning-1904DA?style=for-the-badge)
+**Designed and implemented by [Mina Bisa](https://github.com/minabisa)**
 
-</p>
+</div>
 
 ---
 
-# 📖 Project Overview
+## Project Overview
 
-This project demonstrates the implementation of a complete **Enterprise DevSecOps platform** on **Amazon Web Services (AWS)** using modern CI/CD and GitOps practices.
+This project implements an end-to-end **DevSecOps and GitOps delivery platform** for a Spring Boot application on AWS.
 
-The platform automates the entire software delivery lifecycle—from infrastructure provisioning and application build to security scanning, container image publishing, and Kubernetes deployment.
+Terraform provisions the cloud infrastructure. GitHub webhooks trigger Jenkins, which builds and tests the application, publishes quality and security results, creates a versioned Docker image, scans it with Trivy, pushes it to Docker Hub, and updates the Kubernetes image tag in Git. Argo CD detects that Git change and synchronizes the desired state to Amazon EKS.
 
-Infrastructure is provisioned using **Terraform**, continuous integration is handled by **Jenkins**, code quality and security are validated using **SonarQube**, **OWASP Dependency Check**, and **Trivy**, while **Argo CD** continuously deploys changes to **Amazon EKS** using GitOps principles.
-
-The project focuses on implementing automation, security, scalability, and deployment consistency by following modern cloud-native engineering practices.
+The result is a traceable deployment flow in which **security checks run before image publication**, **Git remains the deployment source of truth**, and **Kubernetes performs rolling application updates**.
 
 ---
-
-# 🎯 Project Objectives
-
-- Provision cloud infrastructure using Infrastructure as Code (Terraform)
-- Build a secure and automated CI/CD pipeline
-- Integrate multiple DevSecOps security tools
-- Enforce Quality Gates before deployment
-- Build immutable Docker images
-- Push container images to Docker Hub
-- Implement GitOps Continuous Delivery using Argo CD
-- Deploy workloads to Amazon EKS
-- Follow Kubernetes security best practices
-- Demonstrate an enterprise-ready deployment workflow suitable for production environments
-
----
-
-# 💼 Business Problem
-
-Many organizations still rely on manual deployment processes that introduce operational risk, security gaps, and inconsistent application delivery.
-
-Common challenges include:
-
-- Manual infrastructure provisioning
-- Configuration drift across environments
-- Limited security validation during CI/CD
-- Inconsistent deployment processes
-- Lack of automated vulnerability scanning
-- Slow and error-prone software releases
-- Limited deployment traceability
-
-These challenges reduce deployment reliability and increase operational overhead.
-
----
-
-# 💡 Solution
-
-This project addresses these challenges by implementing a fully automated DevSecOps platform that integrates infrastructure provisioning, continuous integration, security scanning, containerization, and GitOps deployment into a single automated workflow.
-
-Every code change automatically triggers a secure CI/CD pipeline that:
-
-- Builds the application
-- Executes automated testing
-- Performs static code analysis
-- Scans third-party dependencies
-- Validates Quality Gates
-- Builds and scans Docker images
-- Pushes images to Docker Hub
-- Updates Kubernetes deployment manifests
-- Automatically deploys the application to Amazon EKS through Argo CD
-
-This approach improves deployment consistency, reduces manual intervention, and enforces security throughout the software delivery lifecycle.
-
----
-
-# ✨ Key Features
-
-- Infrastructure as Code using Terraform
-- Secure Jenkins CI/CD Pipeline
-- Maven Build Automation
-- Unit Testing
-- JaCoCo Code Coverage
-- SonarQube Static Code Analysis (SAST)
-- OWASP Dependency Check (SCA)
-- Trivy Container Image Scanning
-- Docker Image Publishing
-- GitOps Continuous Delivery
-- Automated Kubernetes Deployment
-- Amazon EKS
-- Argo CD Synchronization
-- Rolling Updates
-- Non-Root Containers
-- Kubernetes Security Contexts
-- Resource Requests & Limits
-- Health Probes
-- Least Privilege Container Execution
-
----
-
-# 📸 Project Showcase
 
 ## Architecture
 
-<p align="center">
-<img src="docs/images/architecture.png" width="95%">
-</p>
+```mermaid
+flowchart LR
+    DEV[Developer] -->|Push| GH[GitHub Repository]
+    GH -->|Webhook| JC[Jenkins Controller]
+    JC -->|SSH| JA[Jenkins Build Agent]
+
+    subgraph CI["Continuous Integration and Security"]
+        JA --> BUILD[Maven Build and Unit Tests]
+        BUILD --> COVERAGE[JaCoCo Coverage]
+        COVERAGE --> SCA[OWASP Dependency-Check]
+        SCA --> SAST[SonarQube Analysis]
+        SAST --> QG{Quality Gate}
+        QG -->|Passed| IMAGE[Docker Image Build]
+        IMAGE --> TRIVY[Trivy Image Scan]
+    end
+
+    TRIVY --> DH[Docker Hub]
+    DH --> MANIFEST[Update Kubernetes Image Tag]
+    MANIFEST -->|Commit with skip ci| GH
+    GH --> ARGO[Argo CD]
+    ARGO -->|Auto Sync, Prune, Self-Heal| EKS[Amazon EKS]
+    EKS --> APP[Spring Boot Application]
+```
+
+### Delivery Flow
+
+```text
+Code Push
+  → Jenkins Build Agent
+  → Build, Tests, and Coverage
+  → OWASP Dependency Scan
+  → SonarQube Quality Gate
+  → Docker Build
+  → Trivy Scan
+  → Docker Hub
+  → GitOps Manifest Update
+  → Argo CD Sync
+  → Amazon EKS Rolling Deployment
+```
+
+---
+
+## Business Problem
+
+Manual delivery processes introduce inconsistent environments, weak auditability, delayed security feedback, and configuration drift.
+
+This project addresses those problems by providing:
+
+- Repeatable AWS infrastructure through Terraform
+- Automated build and test execution
+- Security checks integrated into CI
+- Quality Gate enforcement before image publication
+- Immutable image tags based on Jenkins build numbers
+- GitOps-based Kubernetes delivery
+- Automatic drift detection and reconciliation with Argo CD
+- Secure non-root Kubernetes workloads with health probes and resource controls
+
+---
+
+## Technology Stack
+
+| Area | Technology |
+|---|---|
+| Cloud | AWS |
+| Infrastructure as Code | Terraform |
+| CI Orchestration | Jenkins Controller |
+| Build Execution | Dedicated Jenkins Agent |
+| Application | Java, Spring Boot |
+| Build Tool | Maven |
+| Unit Test Coverage | JaCoCo |
+| Static Analysis | SonarQube |
+| Dependency Security | OWASP Dependency-Check |
+| Containerization | Docker |
+| Image Security | Trivy |
+| Image Registry | Docker Hub |
+| Orchestration | Kubernetes |
+| Managed Kubernetes | Amazon EKS |
+| Continuous Delivery | Argo CD |
+| Source Control and GitOps | GitHub |
+| Automation | Bash |
+
+---
+
+## Repository Structure
+
+```text
+springboot-devsecops-pipeline/
+├── argocd/
+│   └── application.yaml
+├── docs/
+│   └── images/
+│       ├── application.png
+│       ├── argocd.png
+│       ├── dockerhub.png
+│       ├── eks.png
+│       ├── pipeline.png
+│       ├── pods.png
+│       ├── sonarqube.png
+│       └── terraform.png
+├── kubernetes/
+│   ├── deployment.yaml
+│   ├── namespace.yaml
+│   └── service.yaml
+├── scripts/
+│   ├── install-agent.sh
+│   ├── install-jenkins.sh
+│   └── install-sonarqube.sh
+├── src/
+├── terraform/
+│   ├── argocd.tf
+│   ├── ec2.tf
+│   ├── eks-iam.tf
+│   ├── eks.tf
+│   ├── helm.tf
+│   ├── network.tf
+│   ├── outputs.tf
+│   ├── provider.tf
+│   ├── security.tf
+│   ├── variables.tf
+│   └── versions.tf
+├── .dockerignore
+├── .gitignore
+├── check.sh
+├── Dockerfile
+├── Jenkinsfile
+├── pom.xml
+└── README.md
+```
+
+---
+
+## Infrastructure
+
+Terraform provisions the infrastructure required by the platform:
+
+- VPC networking and routing
+- Security groups
+- Jenkins Controller EC2 instance
+- Jenkins Agent EC2 instance
+- SonarQube EC2 instance
+- EKS control plane and managed node group
+- IAM roles and policy attachments
+- Helm provider configuration
+- Argo CD Helm release
+
+> The repository currently uses public subnets for this portfolio lab. A production implementation should place worker nodes and internal services in private subnets and use controlled egress.
 
 ---
 
 ## Jenkins Pipeline
 
-<p align="center">
-<img src="docs/images/pipeline.png" width="95%">
-</p>
+The Jenkins pipeline runs on the dedicated `build-agent`.
 
----
+| Stage | Purpose |
+|---|---|
+| Tool Install | Makes configured Jenkins tools available to the agent |
+| Checkout | Retrieves the selected Git branch |
+| Build, Test and Coverage | Compiles the application, runs tests, and generates JaCoCo output |
+| Verify Build Output | Confirms the compiled classes, test classes, coverage report, and JAR exist |
+| SCA – OWASP Dependency Check | Scans third-party dependencies for known vulnerabilities |
+| SAST – SonarQube Analysis | Performs static analysis and sends coverage/test data to SonarQube |
+| Quality Gate | Stops delivery when the SonarQube Quality Gate fails |
+| Build Docker Image | Creates versioned and `latest` images |
+| Scan Docker Image | Produces Trivy table and JSON reports |
+| Push Docker Image | Publishes the approved image to Docker Hub |
+| Update GitOps Manifest | Updates `kubernetes/deployment.yaml` with the Jenkins build tag |
+| Post Actions | Archives results and removes local images and workspace files |
 
-## SonarQube Analysis
+### Image Versioning
 
-<p align="center">
-<img src="docs/images/sonarqube.png" width="95%">
-</p>
-
----
-
-## OWASP Dependency Check
-
-<p align="center">
-<img src="docs/images/owasp.png" width="95%">
-</p>
-
----
-
-## Trivy Image Scan
-
-<p align="center">
-<img src="docs/images/trivy.png" width="95%">
-</p>
-
----
-
-## Docker Hub
-
-<p align="center">
-<img src="docs/images/dockerhub.png" width="95%">
-</p>
-
----
-
-## GitOps Deployment (Argo CD)
-
-<p align="center">
-<img src="docs/images/argocd.png" width="95%">
-</p>
-
----
-
-## Amazon EKS
-
-<p align="center">
-<img src="docs/images/eks-pods.png" width="95%">
-</p>
-
----
-
-## Running Application
-
-<p align="center">
-<img src="docs/images/application.png" width="95%">
-</p>
-
----
-
-# 🏗 Solution Architecture
-
-The platform follows a modern **GitOps-based DevSecOps architecture**, where infrastructure provisioning, continuous integration, security validation, container image management, and Kubernetes deployment are fully automated.
-
-Every source code change triggers an end-to-end CI/CD workflow that validates application quality, performs multiple security scans, builds a secure Docker image, updates the Kubernetes deployment manifest, and allows Argo CD to synchronize the desired state with the Amazon EKS cluster.
-
----
-
-# ☁ Enterprise Architecture
-
-```mermaid
-flowchart TD
-
-A[Developer]
-
-B[GitHub Repository]
-
-C[GitHub Webhook]
-
-D[Jenkins Controller]
-
-E[Jenkins Build Agent]
-
-F[Maven Build]
-
-G[Unit Tests]
-
-H[JaCoCo Code Coverage]
-
-I[OWASP Dependency Check]
-
-J[SonarQube Analysis]
-
-K[Quality Gate]
-
-L[Docker Build]
-
-M[Trivy Image Scan]
-
-N[Docker Hub]
-
-O[Update Kubernetes Manifest]
-
-P[Git Push]
-
-Q[Argo CD]
-
-R[Amazon EKS]
-
-S[Spring Boot Application]
-
-A --> B
-B --> C
-C --> D
-D --> E
-
-E --> F
-F --> G
-G --> H
-H --> I
-I --> J
-J --> K
-K --> L
-L --> M
-M --> N
-
-N --> O
-O --> P
-P --> B
-
-B --> Q
-Q --> R
-R --> S
-```
-
----
-
-# 🔄 End-to-End CI/CD & GitOps Workflow
-
-| Step | Description |
-|------|-------------|
-| 1 | Developer pushes application code to GitHub |
-| 2 | GitHub Webhook automatically triggers Jenkins |
-| 3 | Jenkins checks out the repository |
-| 4 | Maven compiles the application |
-| 5 | Unit tests are executed |
-| 6 | JaCoCo generates code coverage reports |
-| 7 | OWASP Dependency Check scans third-party dependencies |
-| 8 | SonarQube performs Static Application Security Testing (SAST) |
-| 9 | Jenkins waits for the SonarQube Quality Gate |
-| 10 | Docker builds a production-ready image |
-| 11 | Trivy scans the Docker image for vulnerabilities |
-| 12 | Docker image is pushed to Docker Hub |
-| 13 | Jenkins updates the Kubernetes deployment manifest |
-| 14 | Jenkins commits the updated manifest to GitHub |
-| 15 | Argo CD detects the Git change |
-| 16 | Argo CD synchronizes Amazon EKS |
-| 17 | Kubernetes performs a rolling deployment |
-| 18 | The latest application version becomes available |
-
----
-
-# 🛠 Technology Stack
-
-| Category | Technology |
-|------------|------------|
-| Cloud Platform | Amazon Web Services (AWS) |
-| Infrastructure as Code | Terraform |
-| Continuous Integration | Jenkins |
-| Continuous Delivery | Argo CD |
-| Source Control | GitHub |
-| Programming Language | Java |
-| Framework | Spring Boot |
-| Build Tool | Maven |
-| Static Code Analysis | SonarQube |
-| Software Composition Analysis | OWASP Dependency Check |
-| Containerization | Docker |
-| Image Security | Trivy |
-| Container Registry | Docker Hub |
-| Container Orchestration | Kubernetes |
-| Managed Kubernetes | Amazon EKS |
-| Operating System | Ubuntu Linux |
-| Scripting | Bash |
-
----
-
-# 📂 Repository Structure
+Each successful build publishes an immutable image tag:
 
 ```text
-springboot-devsecops-pipeline/
-│
-├── argocd/
-│   └── application.yaml
-│
-├── docs/
-│   ├── images/
-│   └── screenshots/
-│
-├── kubernetes/
-│   ├── deployment.yaml
-│   ├── namespace.yaml
-│   └── service.yaml
-│
-├── scripts/
-│   ├── install-agent.sh
-│   ├── install-jenkins.sh
-│   └── install-sonarqube.sh
-│
-├── terraform/
-│   ├── provider.tf
-│   ├── versions.tf
-│   ├── variables.tf
-│   ├── networking.tf
-│   ├── security-groups.tf
-│   ├── ec2.tf
-│   ├── eks.tf
-│   ├── iam.tf
-│   ├── outputs.tf
-│   └── terraform.tfvars.example
-│
-├── src/
-│
-├── Dockerfile
-├── Jenkinsfile
-├── pom.xml
-├── README.md
-├── .gitignore
-└── LICENSE
+minabisa90/springboot-devsecops:<BUILD_NUMBER>
 ```
 
----
-
-# 🖥 Infrastructure Components
-
-The platform consists of the following infrastructure components.
-
-| Component | Purpose |
-|-----------|---------|
-| Jenkins Controller EC2 | Orchestrates the CI/CD pipeline |
-| Jenkins Build Agent EC2 | Executes builds and security scans |
-| SonarQube EC2 | Performs static code analysis |
-| Docker Hub | Stores versioned Docker images |
-| Amazon EKS | Hosts the Spring Boot application |
-| GitHub | Source code and GitOps repository |
-| Argo CD | Synchronizes Kubernetes manifests with Amazon EKS |
+Jenkins also updates the Kubernetes manifest to the same tag. This connects the CI artifact directly to the GitOps deployment revision.
 
 ---
 
-# 🔐 Security Architecture
+## Security Controls
 
-Security is integrated throughout the CI/CD pipeline rather than being treated as a final deployment step.
+### Application and Dependency Security
 
-The platform implements multiple layers of security including:
+- Maven unit tests
+- JaCoCo code coverage
+- SonarQube static analysis
+- SonarQube Quality Gate enforcement
+- OWASP Dependency-Check with an NVD API key
+- Trivy container image vulnerability scanning
 
-- Infrastructure as Code (Terraform)
-- Static Application Security Testing (SonarQube)
-- Software Composition Analysis (OWASP Dependency Check)
-- Container Image Vulnerability Scanning (Trivy)
-- Non-root Docker Containers
-- Kubernetes Security Contexts
-- Resource Requests and Limits
-- Rolling Deployments
-- GitOps Continuous Delivery
-- Immutable Container Images
+### Container Security
 
----
+- Dedicated non-root user with numeric UID/GID `10001`
+- Privilege escalation disabled
+- Linux capabilities dropped
+- Minimal Java runtime image
+- Versioned and traceable container images
 
-# 📊 CI/CD Pipeline Overview
+### Kubernetes Security and Reliability
 
-```text
-Developer
-     │
-     ▼
-Git Push
-     │
-GitHub Webhook
-     │
-     ▼
-Jenkins Controller
-     │
-     ▼
-Jenkins Build Agent
-     │
-──────────────────────────────────────────────
-Checkout Source Code
-Compile Application
-Unit Testing
-JaCoCo Coverage
-OWASP Dependency Check
-SonarQube Analysis
-Quality Gate Validation
-Docker Image Build
-Trivy Image Scan
-Push Docker Image
-──────────────────────────────────────────────
-     │
-Update Kubernetes Deployment
-     │
-Git Commit
-     ▼
-GitHub Repository
-     │
-Argo CD
-     │
-Amazon EKS
-     │
-Rolling Deployment
-     │
-Spring Boot Application
-```
+- `runAsNonRoot`
+- `RuntimeDefault` seccomp profile
+- CPU and memory requests
+- CPU and memory limits
+- Startup probe
+- Readiness probe
+- Liveness probe
+- Rolling update strategy
+- Two application replicas
+
+### Secrets Management
+
+Jenkins credentials are used for:
+
+- Docker Hub
+- GitHub Personal Access Token
+- SonarQube token
+- NVD API key
+- Jenkins Agent SSH key
+
+No credentials should be committed to Git.
 
 ---
 
-# ☁ Infrastructure Provisioning
+## GitOps Delivery
 
-The entire AWS infrastructure is provisioned using **Terraform**, enabling repeatable, version-controlled, and automated deployments.
+Jenkins does not deploy directly with `kubectl`.
 
-Terraform creates the networking, compute resources, security groups, IAM roles, and Amazon EKS cluster required to support the complete DevSecOps platform.
+After the image passes all pipeline checks:
 
-## Infrastructure Components
+1. Jenkins pushes the versioned image to Docker Hub.
+2. Jenkins updates the image tag in `kubernetes/deployment.yaml`.
+3. Jenkins commits the change using `[skip ci]` to avoid a webhook loop.
+4. Argo CD detects the new Git revision.
+5. Argo CD synchronizes the manifests to EKS.
+6. Kubernetes performs a rolling update.
+7. Argo CD reports the application as **Healthy** and **Synced**.
 
-| Resource | Description |
-|----------|-------------|
-| VPC | Dedicated virtual network for the platform |
-| Public Subnets | Internet-facing resources |
-| Private Subnets | Secure Kubernetes worker nodes |
-| Internet Gateway | Public internet connectivity |
-| Route Tables | Network routing |
-| Security Groups | Access control for EC2 and EKS |
-| IAM Roles | Least-privilege permissions |
-| Jenkins Controller EC2 | CI/CD orchestration server |
-| Jenkins Build Agent EC2 | Executes builds and security scans |
-| SonarQube EC2 | Static code analysis server |
-| Amazon EKS | Managed Kubernetes cluster |
+This separation keeps Jenkins responsible for CI and artifact publication, while Argo CD remains responsible for cluster delivery.
 
 ---
 
-# 🧱 Infrastructure as Code
+## Project Evidence
 
-Terraform provides several benefits:
+### Successful Jenkins Pipeline
 
-- Fully automated infrastructure provisioning
-- Version-controlled infrastructure
-- Repeatable deployments
-- Consistent environments
-- Reduced manual configuration
-- Easy disaster recovery
-- Simplified infrastructure maintenance
+All build, testing, security, image, and GitOps update stages completed successfully.
+
+<p align="center">
+  <img src="docs/images/pipeline.png" alt="Successful Jenkins DevSecOps pipeline" width="95%">
+</p>
+
+### SonarQube Quality Gate
+
+The application analysis passed its Quality Gate, with coverage and code-quality metrics published in SonarQube.
+
+<p align="center">
+  <img src="docs/images/sonarqube.png" alt="SonarQube analysis and passed Quality Gate" width="95%">
+</p>
+
+### Versioned Images in Docker Hub
+
+Jenkins published multiple versioned images and the `latest` tag.
+
+<p align="center">
+  <img src="docs/images/dockerhub.png" alt="Versioned Docker images in Docker Hub" width="95%">
+</p>
+
+### Active Amazon EKS Cluster
+
+The Terraform-provisioned EKS cluster is active.
+
+<p align="center">
+  <img src="docs/images/eks.png" alt="Active Amazon EKS cluster" width="95%">
+</p>
+
+### Argo CD Healthy and Synced
+
+Argo CD synchronized the Git revision and shows the Kubernetes resources as healthy.
+
+<p align="center">
+  <img src="docs/images/argocd.png" alt="Argo CD application healthy and synced" width="95%">
+</p>
+
+### Running Kubernetes Pods
+
+Two application replicas are running with zero restarts.
+
+<p align="center">
+  <img src="docs/images/pods.png" alt="Running Spring Boot pods on EKS" width="95%">
+</p>
+
+### Running Application
+
+The deployed application exposes its API through Swagger UI.
+
+<p align="center">
+  <img src="docs/images/application.png" alt="Running Spring Boot Swagger UI" width="95%">
+</p>
+
+> `docs/images/terraform.png` contains public and private IP information. Redact the addresses before displaying that screenshot in a public README.
 
 ---
 
-# ⚙ Continuous Integration Pipeline
+## Prerequisites
 
-Every code change automatically triggers a secure CI pipeline through a GitHub Webhook.
+Before provisioning or running the platform, install and configure:
 
-The pipeline executes multiple validation stages before any deployment occurs.
-
-```text
-Git Push
-      │
-      ▼
-GitHub Webhook
-      │
-      ▼
-Jenkins Controller
-      │
-      ▼
-Jenkins Build Agent
-```
+- AWS CLI
+- Terraform
+- Git
+- `kubectl`
+- An AWS account with permissions to create VPC, EC2, IAM, EKS, and related resources
+- Docker Hub account
+- GitHub Personal Access Token with repository content write permission
+- NVD API key
 
 ---
 
-# 🚀 Jenkins Pipeline Stages
-
-## 1️⃣ Source Code Checkout
-
-The pipeline retrieves the latest source code from GitHub.
-
-### Purpose
-
-- Clone repository
-- Ensure latest commit is used
-- Initialize workspace
-
----
-
-## 2️⃣ Build
-
-The application is compiled using Maven.
+## Provision the Infrastructure
 
 ```bash
-mvn clean package
+git clone https://github.com/minabisa/springboot-devsecops-pipeline.git
+cd springboot-devsecops-pipeline/terraform
+
+terraform init
+terraform fmt -check
+terraform validate
+terraform plan -out=tfplan
+terraform apply tfplan
 ```
 
-### Output
-
-- Executable Spring Boot JAR
-- Build artifacts
+Review all resources before applying because EKS, EC2, EBS, and public IPv4 addresses can generate AWS charges.
 
 ---
 
-## 3️⃣ Unit Testing
+## Configure `kubectl`
 
-Automated tests validate application functionality.
+```bash
+aws eks update-kubeconfig \
+  --region us-east-1 \
+  --name springboot-devsecops-eks
 
-### Benefits
-
-- Detect regressions
-- Verify business logic
-- Increase deployment confidence
-
----
-
-## 4️⃣ Code Coverage (JaCoCo)
-
-JaCoCo measures how much application code is exercised by automated tests.
-
-### Benefits
-
-- Identify untested code
-- Improve test quality
-- Increase software reliability
+kubectl get nodes
+```
 
 ---
 
-## 5️⃣ Software Composition Analysis (OWASP Dependency Check)
+## Access Argo CD
 
-OWASP Dependency Check scans third-party libraries for publicly known vulnerabilities (CVEs).
+```bash
+kubectl port-forward \
+  service/argocd-server \
+  8086:443 \
+  --namespace argocd
+```
 
-### Benefits
-
-- Detect vulnerable dependencies
-- Reduce supply-chain risk
-- Improve application security
-
----
-
-## 6️⃣ Static Application Security Testing (SonarQube)
-
-SonarQube analyzes source code without executing the application.
-
-It identifies:
-
-- Bugs
-- Code smells
-- Security hotspots
-- Vulnerabilities
-- Duplicated code
-- Maintainability issues
-
----
-
-## 7️⃣ Quality Gate
-
-The pipeline waits for the SonarQube Quality Gate result before continuing.
-
-If the Quality Gate fails:
-
-- Docker image is **not** built.
-- Application is **not** deployed.
-
-This prevents low-quality code from reaching production.
-
----
-
-## 8️⃣ Docker Image Build
-
-A production-ready Docker image is created.
-
-Security best practices include:
-
-- Multi-stage build
-- Small runtime image
-- Non-root user
-- Minimal attack surface
-- Immutable container
-
----
-
-## 9️⃣ Container Image Scanning (Trivy)
-
-Trivy scans the Docker image for:
-
-- Operating system vulnerabilities
-- Application library vulnerabilities
-- Misconfigurations
-- Known CVEs
-
-Only validated images proceed through the deployment workflow.
-
----
-
-## 🔟 Publish Docker Image
-
-After successful validation:
-
-- Image is tagged using the Jenkins build number.
-- Image is pushed to Docker Hub.
-
-Example:
+Open:
 
 ```text
-minabisa90/springboot-devsecops:15
+https://localhost:8086
 ```
 
-Each build produces an immutable image version, enabling rollback if necessary.
+Retrieve the initial admin password:
+
+```bash
+kubectl get secret argocd-initial-admin-secret \
+  --namespace argocd \
+  --output jsonpath='{.data.password}' \
+  | base64 --decode
+
+echo
+```
 
 ---
 
-# 🔄 GitOps Deployment Workflow
+## Verify the Deployment
 
-Instead of deploying directly from Jenkins, the platform follows GitOps principles.
+```bash
+kubectl get applications --namespace argocd
 
-After pushing the Docker image:
+kubectl get deployment \
+  --namespace springboot-devsecops
 
-1. Jenkins updates the Kubernetes deployment manifest.
-2. Jenkins commits the updated image tag to GitHub.
-3. Argo CD detects the Git change.
-4. Argo CD synchronizes Amazon EKS.
-5. Kubernetes performs a rolling update.
+kubectl get pods \
+  --namespace springboot-devsecops
 
-This ensures Git remains the single source of truth.
+kubectl get service \
+  --namespace springboot-devsecops
+```
 
----
+Check the deployed image:
 
-# ☸ Kubernetes Deployment
+```bash
+kubectl get deployment springboot-devsecops \
+  --namespace springboot-devsecops \
+  --output jsonpath='{.spec.template.spec.containers[0].image}'
 
-The application is deployed to Amazon EKS using Kubernetes manifests.
-
-Deployment features include:
-
-- Rolling updates
-- Replica management
-- Health probes
-- Resource requests
-- Resource limits
-- High availability
+echo
+```
 
 ---
 
-# 🔐 Kubernetes Security Best Practices
+## Access the Application
 
-The deployment follows multiple security recommendations.
+The service is intentionally configured as `ClusterIP` to avoid a public LoadBalancer.
 
-## Pod Security
+```bash
+kubectl port-forward \
+  service/springboot-devsecops \
+  8080:8080 \
+  --namespace springboot-devsecops
+```
 
-- Run as non-root user
-- RuntimeDefault seccomp profile
-- Linux capabilities dropped
-- Privilege escalation disabled
-
-## Resource Management
-
-- CPU requests
-- CPU limits
-- Memory requests
-- Memory limits
-
-## Health Monitoring
-
-- Startup Probe
-- Readiness Probe
-- Liveness Probe
-
-These probes ensure traffic is routed only to healthy application instances.
-
----
-
-# 🚀 GitOps with Argo CD
-
-Argo CD continuously monitors the Git repository.
-
-Whenever Jenkins commits a new image tag:
+Open the Swagger UI:
 
 ```text
-Docker Image
-
-↓
-
-Update deployment.yaml
-
-↓
-
-Git Push
-
-↓
-
-Argo CD detects change
-
-↓
-
-Sync Amazon EKS
-
-↓
-
-Rolling Deployment
-
-↓
-
-Application Updated
+http://localhost:8080/swagger-ui.html
 ```
 
-Advantages include:
+---
 
-- Declarative deployments
-- Automatic synchronization
-- Self-healing
-- Drift detection
-- Easy rollback
-- Complete deployment history
+## Operational Notes
+
+### Avoiding AWS Charges
+
+An EKS control plane cannot be paused. Stop EC2 instances when they are not needed, but destroy the EKS resources when the lab is complete.
+
+```bash
+cd terraform
+terraform destroy
+```
+
+Always confirm that EKS, node groups, EC2 instances, EBS volumes, public IPv4 addresses, and any other billable resources were removed.
+
+### Do Not Commit Local Terraform Artifacts
+
+The repository should not contain:
+
+```text
+terraform/tfplan
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+```
+
+Add these entries to `.gitignore` and remove any committed plan or state files.
 
 ---
 
-# 📈 Project Outcomes
+## Key Results
 
-This implementation demonstrates:
-
-- Automated infrastructure provisioning
-- Secure CI/CD pipeline
-- Continuous security validation
-- Immutable container deployments
-- GitOps-based application delivery
-- Kubernetes deployment automation
-- Enterprise security best practices
-- Production-oriented cloud architecture
+- Automated infrastructure provisioning with Terraform
+- Dedicated Jenkins Controller and build agent
+- Automated unit testing and JaCoCo reporting
+- Integrated SCA, SAST, and image scanning
+- Quality Gate enforcement before image publication
+- Immutable Docker image tags
+- Automated GitOps manifest updates
+- Argo CD auto-sync, pruning, and self-healing
+- Rolling deployment to Amazon EKS
+- Two healthy application replicas
+- Secure non-root runtime configuration
+- Reproducible installation scripts stored in Git
 
 ---
 
-# 🎯 Skills Demonstrated
+## Lessons Learned
 
-## Cloud
+This project required hands-on troubleshooting across several layers:
 
-- Amazon Web Services
-- Amazon EC2
-- Amazon EKS
-- IAM
-- VPC
+- Recovering Jenkins, agent, and SonarQube instances after EC2 replacement
+- Managing Java 11 for the legacy Spring Boot build and Java 21 for modern scanner tooling
+- Resolving OWASP NVD database memory pressure with swap and JVM limits
+- Repairing SonarScanner runtime and permissions
+- Configuring the SonarQube webhook for `waitForQualityGate`
+- Preventing Jenkins webhook loops with `[skip ci]`
+- Correcting non-root UID validation in Kubernetes
+- Tuning startup, readiness, and liveness probes
+- Separating CI responsibilities from GitOps deployment responsibilities
 
-## Infrastructure
+---
 
-- Terraform
-- Infrastructure as Code
+## Future Improvements
 
-## CI/CD
+- Store Terraform state in S3 with DynamoDB state locking
+- Move EKS worker nodes and internal services to private subnets
+- Replace public EC2 administration endpoints with AWS Systems Manager
+- Use Amazon ECR instead of Docker Hub
+- Use AWS Secrets Manager with External Secrets Operator
+- Add Helm or Kustomize overlays for dev, staging, and production
+- Add Prometheus and Grafana monitoring
+- Add centralized logging
+- Enforce Kubernetes policies with Kyverno or OPA Gatekeeper
+- Add SBOM generation and image signing with Syft and Cosign
+- Add Slack or email pipeline notifications
+- Introduce canary or blue/green deployment strategies
 
-- Jenkins
-- GitHub Webhooks
-- GitOps
-- Argo CD
+---
 
-## Containers
+## Author
 
-- Docker
-- Docker Hub
-- Kubernetes
+**Mina Bisa**
 
-## DevSecOps
+DevOps | Cloud | Kubernetes | AWS | Terraform | Jenkins | Docker | GitOps | DevSecOps
 
-- SonarQube
-- OWASP Dependency Check
-- Trivy
+- GitHub: [github.com/minabisa](https://github.com/minabisa)
+- Docker Hub: [hub.docker.com/u/minabisa90](https://hub.docker.com/u/minabisa90)
 
-## Development
+---
 
-- Java
-- Spring Boot
-- Maven
+## Acknowledgment
 
-## Linux
+The Spring Boot application source was adapted as a learning workload. The infrastructure, CI/CD pipeline, security integrations, container hardening, EKS deployment, GitOps workflow, installation scripts, and troubleshooting documented in this repository were implemented as part of this portfolio project.
 
-- Ubuntu
-- Bash Scripting
+---
+
+## License
+
+This repository currently does not include a license file. Add a `LICENSE` file before describing the project as MIT-licensed.
