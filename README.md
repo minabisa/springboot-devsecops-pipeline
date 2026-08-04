@@ -800,3 +800,303 @@ This implementation demonstrates:
 
 - Ubuntu
 - Bash Scripting
+# 📸 Project Demonstration
+
+The following screenshots showcase the complete DevSecOps workflow, from infrastructure provisioning with Terraform to automated GitOps deployment on Amazon EKS.
+
+---
+
+# ☁ AWS Infrastructure Provisioning
+
+Terraform provisions the complete AWS infrastructure required for the platform, including:
+
+- Jenkins Controller EC2
+- Jenkins Build Agent EC2
+- SonarQube EC2
+- Amazon EKS Cluster
+- Networking and Security Groups
+
+<p align="center">
+<img src="docs/images/terraform.png" width="95%">
+</p>
+
+---
+
+# ☸ Amazon EKS Cluster
+
+The Kubernetes cluster is provisioned automatically using Terraform and serves as the deployment target for the application.
+
+<p align="center">
+<img src="docs/images/eks.png" width="95%">
+</p>
+
+---
+
+# ⚙ Jenkins CI/CD Pipeline
+
+The Jenkins pipeline automates the complete software delivery lifecycle.
+
+Pipeline stages include:
+
+- Checkout Source Code
+- Build
+- Unit Testing
+- Code Coverage
+- OWASP Dependency Check
+- SonarQube Analysis
+- Quality Gate
+- Docker Image Build
+- Trivy Image Scan
+- Push Docker Image
+- Update GitOps Manifest
+
+<p align="center">
+<img src="docs/images/pipeline.png" width="95%">
+</p>
+
+---
+
+# 🔍 SonarQube Code Quality Analysis
+
+SonarQube performs Static Application Security Testing (SAST) and evaluates:
+
+- Bugs
+- Vulnerabilities
+- Code Smells
+- Code Coverage
+- Maintainability
+- Quality Gate
+
+The project successfully passed the Quality Gate before deployment.
+
+<p align="center">
+<img src="docs/images/sonarqube.png" width="95%">
+</p>
+
+---
+
+# 📦 Docker Hub
+
+After all validation stages complete successfully, Jenkins builds a versioned Docker image and publishes it to Docker Hub.
+
+Each pipeline execution creates a new immutable image tag.
+
+<p align="center">
+<img src="docs/images/dockerhub.png" width="95%">
+</p>
+
+---
+
+# 🚀 GitOps Deployment with Argo CD
+
+Argo CD continuously monitors the Git repository.
+
+When Jenkins updates the Kubernetes deployment manifest with the new Docker image tag, Argo CD automatically synchronizes the desired state with Amazon EKS.
+
+Deployment Status:
+
+- Healthy
+- Synced
+- Automatic Synchronization Enabled
+
+<p align="center">
+<img src="docs/images/argocd.png" width="95%">
+</p>
+
+---
+
+# ☸ Kubernetes Workloads
+
+After synchronization, Kubernetes performs a rolling update and starts the new application version.
+
+Application Status:
+
+- Two running replicas
+- Zero restarts
+- Healthy Pods
+- Rolling Deployment Completed Successfully
+
+<p align="center">
+<img src="docs/images/pods.png" width="95%">
+</p>
+
+---
+
+# 🌐 Running Spring Boot Application
+
+The application is successfully deployed on Amazon EKS and is accessible through the Kubernetes Service.
+
+Swagger UI confirms the deployment by exposing the REST API documentation.
+
+<p align="center">
+<img src="docs/images/application.png" width="95%">
+</p>
+
+---
+
+# 🚀 Quick Start
+
+## Clone the Repository
+
+```bash
+git clone https://github.com/minabisa/springboot-devsecops-pipeline.git
+
+cd springboot-devsecops-pipeline
+```
+
+---
+
+## Provision AWS Infrastructure
+
+```bash
+cd terraform
+
+terraform init
+
+terraform plan
+
+terraform apply
+```
+
+---
+
+## Configure Jenkins
+
+Install and configure:
+
+- Jenkins
+- Docker
+- Maven
+- SonarScanner
+- Trivy
+
+Configure Jenkins credentials:
+
+- GitHub
+- Docker Hub
+- SonarQube Token
+- NVD API Key
+
+---
+
+## Configure GitHub Webhook
+
+```
+http://<jenkins-public-ip>:8080/github-webhook/
+```
+
+Trigger:
+
+```
+Push Events
+```
+
+---
+
+## Deploy the Application
+
+Push any code change to GitHub.
+
+The platform automatically performs:
+
+```text
+Git Push
+
+↓
+
+GitHub Webhook
+
+↓
+
+Jenkins Pipeline
+
+↓
+
+Build
+
+↓
+
+Test
+
+↓
+
+OWASP Dependency Check
+
+↓
+
+SonarQube Analysis
+
+↓
+
+Quality Gate
+
+↓
+
+Docker Build
+
+↓
+
+Trivy Scan
+
+↓
+
+Push Docker Image
+
+↓
+
+Update Kubernetes Manifest
+
+↓
+
+Git Push
+
+↓
+
+Argo CD Sync
+
+↓
+
+Amazon EKS Deployment
+
+↓
+
+Application Available
+```
+
+---
+
+# ✅ Verification
+
+Verify the deployment:
+
+```bash
+kubectl get pods -n springboot-devsecops
+
+kubectl get svc -n springboot-devsecops
+
+kubectl get deployment -n springboot-devsecops
+```
+
+Expected output:
+
+- Two running Pods
+- Deployment Available
+- Service Running
+
+---
+
+# 📈 Project Results
+
+This implementation successfully demonstrates:
+
+- Infrastructure provisioning with Terraform
+- Automated CI/CD using Jenkins
+- Static code analysis with SonarQube
+- Software Composition Analysis using OWASP Dependency Check
+- Container vulnerability scanning using Trivy
+- Docker image publishing
+- GitOps deployment using Argo CD
+- Automated deployment to Amazon EKS
+- Rolling updates with Kubernetes
+- Secure container execution using non-root containers
+- End-to-end DevSecOps automation
